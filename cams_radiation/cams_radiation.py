@@ -104,6 +104,28 @@ def observation_period_to_index(df: pd.DataFrame, new_index_name: Optional[str] 
     return df
 
 
+def calculate_PAR(df_irradiation: pd.DataFrame):
+    time_delta = df_irradiation.index[1] - df_irradiation.index[0]
+    s_in_1h = 3600
+
+    df_par = pd.DataFrame(index=df_irradiation.index)
+
+    # GHI in units Wh/m2
+    df_par[Units.GLOBAL_IRRADIATION] = df_irradiation["GHI"].copy(deep=True)
+
+    df_par[Units.SHORTWAVE_RADIATION] = (
+        df_par[Units.GLOBAL_IRRADIATION] * s_in_1h / time_delta.seconds
+    )  # s_in_1h converts units to Jm-2 (Wsm-2) and dividing by obs period to Wm-2
+    df_par[Units.PAR] = (
+        df_par[Units.GLOBAL_IRRADIATION] * s_in_1h * PAR_FRACTION * 1e-6
+    )  # after this units are MJm-2 (=MW-m2) (PAR), summation over obs period (time_delta.seconds)
+
+    df_par[Units.PPFD] = df_par[Units.SHORTWAVE_RADIATION] * PAR_FRACTION * J_TO_UMOL
+    # units umolm-2s-1
+
+    return df_par
+
+
 def calculate_aggregated_par(df_irradiation: pd.DataFrame, aggregation_level: str):
     time_delta = df_irradiation.index[1] - df_irradiation.index[0]
 
@@ -115,35 +137,24 @@ def calculate_aggregated_par(df_irradiation: pd.DataFrame, aggregation_level: st
     s_in_day = 86400
 
     if aggregation_level == "daily":
-        assert time_delta.seconds <= s_in_day, assert_error_message
+        if time_delta.days == 0:
+            assert time_delta.seconds < s_in_day, assert_error_message
         aggregator_param = "1D"
         par_units = "PAR [MJ/m2/d]"
     elif aggregation_level == "hourly":
-        assert time_delta.seconds <= s_in_1h, assert_error_message
+        assert time_delta.seconds < s_in_1h, assert_error_message
         aggregator_param = "1H"
         par_units = "PAR [MJ/m2/h]"
     elif aggregation_level == "30min":
-        assert time_delta.seconds <= s_in_30min, assert_error_message
+        assert time_delta.seconds < s_in_30min, assert_error_message
         aggregator_param = "30Min"
         par_units = "PAR [MJ/m2/30min]"
     else:
         raise NotImplementedError(
             f"Aggregation level {aggregation_level} not implemented!"
         )
-    df_aggr = pd.DataFrame(index=df_irradiation.index)
 
-    # GHI in units Wh/m2
-    df_aggr[Units.GLOBAL_IRRADIATION] = df_irradiation["GHI"].copy(deep=True)
-
-    df_aggr[Units.SHORTWAVE_RADIATION] = (
-        df_aggr[Units.GLOBAL_IRRADIATION] * s_in_1h / time_delta.seconds
-    )  # s_in_1h converts units to Jm-2 (Wsm-2) and dividing by obs period to Wm-2
-    df_aggr[Units.PAR] = (
-        df_aggr[Units.GLOBAL_IRRADIATION] * s_in_1h * PAR_FRACTION * 1e-6
-    )  # after this units are MJm-2 (=MW-m2) (PAR), summation over obs period (time_delta.seconds)
-
-    df_aggr[Units.PPFD] = df_aggr[Units.SHORTWAVE_RADIATION] * PAR_FRACTION * J_TO_UMOL
-    # units umolm-2s-1
+    df_aggr = calculate_PAR(df_irradiation)
 
     aggregators = {
         Units.GLOBAL_IRRADIATION: "sum",
