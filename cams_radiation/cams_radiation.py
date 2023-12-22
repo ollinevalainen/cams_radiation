@@ -107,6 +107,10 @@ def observation_period_to_index(df: pd.DataFrame, new_index_name: Optional[str] 
 def calculate_PAR(df_irradiation: pd.DataFrame):
     time_delta = df_irradiation.index[1] - df_irradiation.index[0]
     s_in_1h = 3600
+    if time_delta.days != 0:
+        time_delta_seconds = s_in_1h * 24 * time_delta.days
+    else:
+        time_delta_seconds = time_delta.seconds
 
     df_par = pd.DataFrame(index=df_irradiation.index)
 
@@ -114,7 +118,7 @@ def calculate_PAR(df_irradiation: pd.DataFrame):
     df_par[Units.GLOBAL_IRRADIATION] = df_irradiation["GHI"].copy(deep=True)
 
     df_par[Units.SHORTWAVE_RADIATION] = (
-        df_par[Units.GLOBAL_IRRADIATION] * s_in_1h / time_delta.seconds
+        df_par[Units.GLOBAL_IRRADIATION] * s_in_1h / time_delta_seconds
     )  # s_in_1h converts units to Jm-2 (Wsm-2) and dividing by obs period to Wm-2
     df_par[Units.PAR] = (
         df_par[Units.GLOBAL_IRRADIATION] * s_in_1h * PAR_FRACTION * 1e-6
