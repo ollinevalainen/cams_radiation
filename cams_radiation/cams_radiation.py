@@ -23,11 +23,6 @@ CAMS_SOLAR_RADIATION_TIMESERIES = "cams-solar-radiation-timeseries"
 CAMS_TIME_COL = "Observation_period"
 
 
-# TODO: Updated 5.12.2023
-#       - testing, check that units are correct!
-#       - remove unecessary functions(code)
-
-
 class Units(str, Enum):
     GLOBAL_IRRADIATION = "global_irradiation(Whm-2)"
     SHORTWAVE_RADIATION = "shorwave_radiation(Wm-2)"
