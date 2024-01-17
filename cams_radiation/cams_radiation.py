@@ -40,7 +40,7 @@ class CDSRequest(BaseModel):
     end_time: str
     time_step: Literal["1minute", "15minute", "1hour", "1day", "1month"]
     output_format: Literal["csv", "netcdf", "csv_expert"]
-    cdsapi_args: Optional[dict] = None
+    cdsapi_kwargs: Optional[dict] = None
 
     @model_validator(mode="after")
     def check_csv_expert_timestep(self) -> "CDSRequest":
@@ -51,8 +51,8 @@ class CDSRequest(BaseModel):
     def send_request(
         self, output_file: Optional[str] = None
     ) -> Union[pd.DataFrame, xr.Dataset, None]:
-        if self.cdsapi_args:
-            c = cdsapi.Client(**self.cdsapi_args)
+        if self.cdsapi_kwargs:
+            c = cdsapi.Client(**self.cdsapi_kwargs)
         else:
             c = cdsapi.Client()
 
