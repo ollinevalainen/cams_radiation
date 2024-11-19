@@ -14,7 +14,15 @@ import xarray as xr
 import cdsapi
 from pydantic import BaseModel, model_validator
 from typing import Literal, Optional, Union
-from enum import Enum
+try:
+    # breaking change introduced in python 3.11
+    from enum import StrEnum
+    from enum import Enum
+except ImportError:
+    from enum import Enum
+
+    class StrEnum(str, Enum):
+        pass
 
 PAR_FRACTION = 0.5
 J_TO_UMOL = 4.6
@@ -23,7 +31,7 @@ CAMS_SOLAR_RADIATION_TIMESERIES = "cams-solar-radiation-timeseries"
 CAMS_TIME_COL = "Observation_period"
 
 
-class Units(str, Enum):
+class Units(StrEnum):
     GLOBAL_IRRADIATION = "global_irradiation(Whm-2)"
     SHORTWAVE_RADIATION = "shorwave_radiation(Wm-2)"
     PPFD = "PPFD(umolm-2s-1)"
