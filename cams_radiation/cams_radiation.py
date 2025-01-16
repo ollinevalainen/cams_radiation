@@ -14,15 +14,16 @@ import xarray as xr
 import cdsapi
 from pydantic import BaseModel, model_validator
 from typing import Literal, Optional, Union
+
 try:
     # breaking change introduced in python 3.11
-    from enum import StrEnum
-    from enum import Enum
+    from enum import StrEnum, Enum
 except ImportError:
     from enum import Enum
 
     class StrEnum(str, Enum):
         pass
+
 
 PAR_FRACTION = 0.5
 J_TO_UMOL = 4.6
@@ -175,7 +176,6 @@ def calculate_aggregated_par(df_irradiation: pd.DataFrame, aggregation_level: st
         Units.PPFD: "mean",
     }
     df_aggr = df_aggr.resample(aggregator_param).agg(aggregators)
-    # TODO: Verify this output!
     return df_aggr
 
 
