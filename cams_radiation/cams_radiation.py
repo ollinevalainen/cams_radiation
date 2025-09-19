@@ -5,6 +5,7 @@
 @author:
     Olli Nevalainen (olli.nevalainen@fmi.fi), Finnish Meteorological Institute)
 """
+
 import pandas as pd
 import datetime
 import io
@@ -97,7 +98,7 @@ def _read_csv_url_to_dataframe(url: str) -> pd.DataFrame:
     return df
 
 
-def _read_netcdf_url_to_dataset(url: str) -> pd.DataFrame:
+def _read_netcdf_url_to_dataset(url: str) -> xr.Dataset:
     response = requests.get(url)
     ds = xr.open_dataset(response.content)
     return ds
